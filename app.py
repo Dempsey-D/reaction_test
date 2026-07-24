@@ -3,7 +3,7 @@ import sqlite3
 import os
 
 app = Flask(__name__)
-DB_FILE = 'reactions.db'
+DB_FILE = '/var/data/reactions.db'
 
 def init_db():
     """Create the database and table if they don't exist."""
@@ -51,6 +51,7 @@ def results():
             FROM reactions
             GROUP BY color
             ORDER BY avg_time ASC
+            WHERE time_ms <1000;
         ''')
         results = c.fetchall()
     return render_template('results.html', results=results)
