@@ -49,8 +49,9 @@ def results():
         c.execute('''
             SELECT color, CAST(AVG(time_ms) AS INTEGER) as avg_time
             FROM reactions
+            WHERE time_ms < 1000
             GROUP BY color
-            ORDER BY avg_time ASC;
+            ORDER BY avg_time ASC
         ''')
         results = c.fetchall()
     return render_template('results.html', results=results)
