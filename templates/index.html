@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Reaction Tester</title>
+    <style>
+        body, html { 
+            margin: 0; padding: 0; height: 100%; 
+            font-family: sans-serif; 
+            /* Prevents accidental text highlighting when tapping fast */
+            user-select: none; -webkit-user-select: none;
+        }
+        #game-area { 
+            width: 100%; height: 100%; 
+            display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; text-align: center; 
+        }
+        .hidden { display: none !important; }
+        h1 { font-size: 2rem; margin-bottom: 20px; }
+        button { 
+            font-size: 1.5rem; padding: 15px 40px; cursor: pointer; 
+            margin: 10px; border: none; border-radius: 8px; 
+            background-color: #333; color: white; 
+        }
+        a { color: #333; margin-top: 30px; font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+    <div id="game-area">
+        <div id="ui-container">
+            <h1 id="message">Reaction Tester</h1>
+            <button id="start-btn">Start</button>
+            <button id="play-again-btn" class="hidden">Play Again</button>
+            <br>
+            <a id="results-link" href="/results">View Leaderboard</a>
+        </div>
+    </div>
+
+    <script>
+        const gameArea = document.getElementById('game-area');
+        const uiContainer = document.getElementById('ui-container');
+        const messageEl = document.getElementById('message');
+        const startBtn = document.getElementById('start-btn');
+        const playAgainBtn = document.getElementById('play-again-btn');
+
+        let state = 'idle'; // idle, waiting (grey), ready (color), finished
+        let timeoutId = null;
+        let startTime = 0;
+        let currentColor = '';
+
+        const colors = ['red', 'green', 'blue', 'yellow'];
+
+        function startGame(e) {
+            if (e) e.stopPropagation(); // Prevent the click from triggering the gameArea listener
+            
+            state = 'waiting';
+            uiContainer.classList.add('hidden');
+            gameArea.style.backgroundColor = 'grey';
+            
+            // Random delay between 2000ms (2s) and 8000ms (8s)
+            const randomDelay = Math.floor(Math.random() * (8000 - 2000 + 1)) + 2000;
+            
+            timeoutId = setTimeout(() => {
+                state = 'ready';
+                currentColor = colors[Math.floor(Math.random() * colors.length)];
+                gameArea.style.backgroundColor = currentColor;
+                startTime = Date.now();
+            }, randomDelay);
+        }
+
+        function handleReaction(e) {
+            // Only respond to clicks on the background if we are waiting or ready
+            if (state === 'idle' || state === 'finished') return;
+            
+            if (e.type === 'touchstart') e.preventDefault(); // Prevent double-firing on mobile
+
+            if (state === 'waiting') {
+                // User clicked too early
+                clearTimeout(timeoutId);
+                endGame("Too early! Wait for the color.", false);
+            } else if (state === 'ready') {
+                // Valid reaction
+                const reactionTime = Date.now() - startTime;
+                endGame(`Reaction time: ${reactionTime} ms`, true, reactionTime);
+            }
+        }
+
+        function endGame(message, saveScore, time = 0) {
+            state = 'finished';
+            gameArea.style.backgroundColor = 'white';
+            uiContainer.classList.remove('hidden');
+            messageEl.innerText = message;
+            
+            startBtn.classList.add('hidden');
+            playAgainBtn.classList.remove('hidden');
+
+            if (saveScore) {
+                // Send data to Flask backend
+                fetch('/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ color: currentColor, time_ms: time })
+                });
+            }
+        }
+
+        // Button Listeners
+        startBtn.addEventListener('click', startGame);
+        playAgainBtn.addEventListener('click', startGame);
+        
+        // Background Tap/Click Listeners for the game
+        gameArea.addEventListener('mousedown', handleReaction);
+        gameArea.addEventListener('touchstart', handleReaction, {passive: false});
+    </script>
+</body>
+</html>

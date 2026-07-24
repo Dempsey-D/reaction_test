@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reaction Results</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 500px; margin: 0 auto; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 1.2rem; }
+        th, td { border: 2px solid #ccc; padding: 15px; }
+        th { background-color: #f4f4f4; }
+        .back-btn { 
+            display: inline-block; margin-top: 30px; color: white; 
+            text-decoration: none; background-color: #333; 
+            padding: 15px 30px; border-radius: 8px; font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>Average Reaction Times</h1>
+    
+    {% if results %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Color</th>
+                    <th>Average Time (ms)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for color, avg_time in results %}
+                <tr>
+                    <td style="color: {{ color }}; font-weight: bold; text-transform: uppercase;">
+                        {% if color == 'yellow' %} 
+                            <!-- Yellow text is hard to read on white backgrounds, adding a subtle shadow -->
+                            <span style="text-shadow: 1px 1px 2px #000;">{{ color }}</span>
+                        {% else %}
+                            {{ color }}
+                        {% endif %}
+                    </td>
+                    <td>{{ avg_time }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No results yet! Go play the game to log some times.</p>
+    {% endif %}
+    
+    <a href="/" class="back-btn">Back to Game</a>
+</body>
+</html>
