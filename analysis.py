@@ -35,5 +35,3 @@ for color in df['color'].unique():
     for stat, value in summary_stats.items():
         print(f"{stat}: {value:.2f}" if isinstance(value, float) else f"{stat}: {value}")
 
-
-print(grouped)
